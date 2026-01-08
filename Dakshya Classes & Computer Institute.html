@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exam Results - Dakshya Classes & Computer Institute</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  
+  <!-- html2pdf library for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background:#f5f5f5; min-height:100vh; padding:20px; }
+    
+    /* Header */
+    .header { 
+      background:linear-gradient(to right,#1a237e,#283593,#303f9f); 
+      color:white; 
+      padding:20px; 
+      text-align:center; 
+      position:relative; 
+      overflow:hidden; 
+      border-radius:15px 15px 0 0;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto 0 auto;
+      box-shadow:0 15px 30px rgba(0,0,0,0.2);
+    }
+    .school-name { font-size:2rem; font-weight:700; line-height:1.2; }
+    .school-subtitle { font-size:1.2rem; margin:5px 0 10px 0; color:#ffc107; }
+    .location { font-size:1rem; margin-bottom:15px; }
+    
+    /* Founders Container - Single Horizontal Line */
+    .founders-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+      width: 100%;
+      padding: 0 10px;
+    }
+    
+    .founder-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 12px;
+      border-radius: 8px;
+      min-width: 45%;
+      max-width: 48%;
+      transition: transform 0.3s ease;
+    }
+    
+    .founder-card:hover {
+      transform: translateY(-3px);
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .founder-photo { 
+      width: 60px; 
+      height: 60px; 
+      border-radius: 50%; 
+      border: 2px solid white; 
+      overflow: hidden; 
+      flex-shrink: 0;
+    }
+    .founder-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+    
+    .founder-details {
+      text-align: left;
+      flex-grow: 1;
+    }
+    
+    .founder-details h2 {
+      font-size: 0.7rem; 
+      margin-bottom: 5px; 
+      color: #ffc107;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .founder-details h3 {
+      font-size: 0.85rem; 
+      margin-bottom: 5px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    
+    .founder-details p {
+      font-size: 0.75rem;
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Moving Notice Text - From Firebase */
+    .marquee-container {
+      background:#ffc107;
+      overflow:hidden;
+      position:relative;
+      height:50px;
+      display:flex;
+      align-items:center;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto 0 auto;
+    }
+    .marquee-content {
+      display:flex;
+      animation: marquee 20s linear infinite;
+      white-space:nowrap;
+      font-weight:600;
+      font-size:1.1rem;
+      color:#333;
+    }
+    @keyframes marquee {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* Firebase Results Section */
+    .results-section { 
+      padding:20px; 
+      background:#f9f9f9; 
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto 0 auto;
+      border-radius: 0 0 15px 15px;
+      box-shadow:0 15px 30px rgba(0,0,0,0.2);
+    }
+    .section-title { font-size:1.5rem; color:#1a237e; text-align:center; margin-bottom:20px; padding-bottom:10px; border-bottom:2px solid #1a237e; }
+    
+    .results-list { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:15px; margin-bottom:25px; }
+    .result-item { background:white; padding:15px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.1); cursor:pointer; transition:all 0.3s; border-left:4px solid #1a237e; position:relative; }
+    .result-item:hover { transform:translateY(-5px); box-shadow:0 8px 20px rgba(0,0,0,0.15); }
+    .result-item.active { border-left-color:#ffc107; background:#fffae6; }
+    .exam-name { font-size:1rem; color:#1a237e; font-weight:600; margin-bottom:8px; }
+    .exam-date { font-size:0.8rem; color:#666; margin-bottom:5px; }
+    
+    /* NEW Sticker */
+    .new-sticker {
+      position:absolute;
+      top:-8px;
+      right:-8px;
+      background:#ff4757;
+      color:white;
+      font-size:0.7rem;
+      font-weight:bold;
+      padding:4px 8px;
+      border-radius:10px;
+      animation: blink 1s infinite;
+      z-index:10;
+    }
+    @keyframes blink {
+      0%, 100% { opacity:1; }
+      50% { opacity:0.7; }
+    }
+    
+    .roll-input-section { background:white; padding:20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.1); margin-top:20px; text-align:center; display:none; }
+    .roll-input-section h3 { color:#1a237e; margin-bottom:15px; font-size:1.1rem; }
+    .input-group { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; }
+    .input-group input { padding:10px 12px; font-size:0.95rem; border-radius:5px; border:1px solid #ccc; width:100%; max-width:250px; }
+    .result-btn { padding:10px 20px; background:#1a237e; color:white; font-size:0.95rem; border:none; border-radius:8px; cursor:pointer; transition:background 0.3s; }
+    .result-btn:hover { background:#283593; }
+    
+    /* Result Card - Mobile Optimized */
+    .result-card { display:none; width:95%; max-width:700px; margin:20px auto; background:white; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.2); padding:20px; position:relative; overflow-x:auto; }
+    .result-card-header { text-align:center; margin-bottom:20px; padding-bottom:10px; border-bottom:2px solid #1a237e; }
+    .result-card-header h2 { color:#1a237e; margin-bottom:5px; font-size:1.3rem; }
+    .result-card-header h3 { color:#b21f1f; margin-bottom:5px; font-size:1.1rem; }
+    .result-card-header p { color:#666; font-size:0.85rem; }
+    
+    .student-info { margin-bottom:20px; }
+    .info-row { display:flex; flex-direction:column; margin-bottom:8px; padding:8px 12px; background:#f5f5f5; border-radius:5px; }
+    .info-label { font-weight:600; color:#1a237e; font-size:0.9rem; margin-bottom:3px; }
+    .info-value { color:#333; font-size:0.95rem; }
+    
+    .marks-table { width:100%; border-collapse:collapse; margin-bottom:20px; min-width:500px; }
+    .marks-table th { background:#1a237e; color:white; padding:10px; text-align:left; font-size:0.9rem; }
+    .marks-table td { padding:10px; border-bottom:1px solid #ddd; font-size:0.9rem; }
+    .marks-table tr:nth-child(even) { background:#f9f9f9; }
+    .marks-table tr:hover { background:#f0f0f0; }
+    
+    .total-marks { background:#e8f5e8 !important; font-weight:600; color:#1a237e; }
+    .percentage-display { text-align:center; font-size:1.2rem; color:#1a237e; font-weight:700; padding:12px; background:#f0f7ff; border-radius:10px; margin-top:15px; }
+    .division-display { text-align:center; font-size:1.4rem; color:#1a237e; font-weight:700; padding:12px; margin-top:12px; border-radius:10px; }
+    .coaching-mention { text-align:center; margin-top:15px; padding-top:12px; border-top:1px solid #ddd; color:#666; font-style:italic; font-size:0.9rem; }
+    
+    .action-buttons { display:flex; justify-content:center; gap:10px; margin-top:20px; padding-top:15px; border-top:1px solid #ddd; flex-wrap:wrap; }
+    .action-buttons button { padding:10px 15px; font-size:0.9rem; border:none; border-radius:8px; cursor:pointer; transition:all 0.3s; display:flex; align-items:center; gap:5px; }
+    .download-btn { background:#28a745; color:white; }
+    .download-btn:hover { background:#218838; }
+    .back-btn { background:#6c757d; color:white; }
+    .back-btn:hover { background:#5a6268; }
+    
+    .loading { text-align:center; padding:20px; font-size:1rem; color:#1a237e; }
+    .error { text-align:center; padding:15px; background:#ffe6e6; color:#b30000; border-radius:5px; margin:15px 0; }
+    
+    /* Coaching Promotion Section - Updated with Numbered List */
+    .promotion-section {
+      padding: 20px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      margin: 20px auto;
+      border-radius: 10px;
+      border-left: 5px solid #1a237e;
+      width: 100%;
+      max-width: 1200px;
+    }
+    .promotion-section h3 {
+      color: #1a237e;
+      text-align: center;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+    }
+    .about-list {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #333;
+      padding: 0 10px;
+      list-style-type: decimal;
+      margin-left: 20px;
+    }
+    .about-list li {
+      margin-bottom: 10px;
+      padding-left: 5px;
+    }
+    .promo-highlight {
+      color: #b21f1f;
+      font-weight: 600;
+    }
+    
+    /* Motivational Quotes Section - Updated with English Quotes */
+    .shayari-section {
+      padding: 25px 20px;
+      background: #f8f9fa;
+      margin: 20px auto;
+      border-radius: 10px;
+      border-top: 3px solid #1a237e;
+      border-bottom: 3px solid #1a237e;
+      width: 100%;
+      max-width: 1200px;
+    }
+    .shayari-title {
+      text-align: center;
+      color: #1a237e;
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+      position: relative;
+    }
+    .shayari-title:after {
+      content: '';
+      position: absolute;
+      width: 100px;
+      height: 3px;
+      background: #ffc107;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .shayari-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .shayari-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-left: 4px solid #1a237e;
+      transition: transform 0.3s;
+    }
+    .shayari-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+    .shayari-text {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #333;
+      font-style: italic;
+      text-align: center;
+      margin-bottom: 10px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .shayari-author {
+      text-align: center;
+      color: #1a237e;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border-top: 1px dashed #ddd;
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+    
+    /* Footer */
+    .footer { 
+      background:#1a237e; 
+      color:white; 
+      text-align:center; 
+      padding:15px; 
+      font-size:0.9rem; 
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      border-radius: 0 0 15px 15px;
+    }
+    
+    /* Developer Contact Section - Simplified */
+    .developer-contact {
+      background: #f1f3f5;
+      padding: 15px;
+      text-align: center;
+      border-top: 1px solid #ddd;
+      margin: 20px auto 0 auto;
+      font-size: 0.85rem;
+      width: 100%;
+      max-width: 1200px;
+      border-radius: 10px;
+    }
+    .developer-contact h3 {
+      color: #1a237e;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+    .developer-contact p {
+      color: #555;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .contact-info {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .contact-item {
+      background: white;
+      padding: 8px 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .contact-item i {
+      color: #1a237e;
+      font-size: 0.9rem;
+    }
+    .contact-item span {
+      font-size: 0.8rem;
+    }
+    
+    /* Admin Password Modal */
+    .admin-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .modal-content h3 {
+      color: #1a237e;
+      margin-bottom: 20px;
+    }
+    .modal-content input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .modal-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .modal-btn.submit {
+      background: #1a237e;
+      color: white;
+    }
+    .modal-btn.cancel {
+      background: #ccc;
+      color: #333;
+    }
+    
+    /* PDF Generation Fix Styles */
+    .pdf-clone-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      z-index: 10000;
+      overflow: auto;
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+    }
+    
+    .pdf-clone {
+      width: 100%;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    
+    /* Media Queries for Mobile - UPDATED FOUNDER CENTER ALIGNMENT */
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .school-name { font-size:1.6rem; }
+      .school-subtitle { font-size: 1rem; }
+      .header { padding:15px; }
+      
+      /* Founders horizontal layout on mobile - CENTERED */
+      .founders-container {
+        flex-direction: row;
+        justify-content: center; /* CHANGED: Center alignment */
+        gap: 8px;
+        padding: 0 5px;
+      }
+      
+      .founder-card {
+        min-width: 48%;
+        max-width: 49%;
+        padding: 10px;
+        gap: 8px;
+      }
+      
+      .founder-photo { 
+        width: 50px; 
+        height: 50px;
+      }
+      
+      .founder-details h2 {
+        font-size: 0.6rem;
+      }
+      
+      .founder-details h3 {
+        font-size: 0.75rem;
+      }
+      
+      .founder-details p {
+        font-size: 0.65rem;
+      }
+      
+      .results-list { grid-template-columns:1fr; }
+      
+      .marks-table { font-size:0.85rem; min-width:450px; }
+      .marks-table th, .marks-table td { padding:8px; }
+      
+      .action-buttons { flex-direction:column; }
+      .action-buttons button { width:100%; justify-content:center; }
+      
+      .about-list, .shayari-text { font-size:0.85rem; }
+      
+      /* Shayari section mobile */
+      .shayari-container {
+        grid-template-columns: 1fr;
+      }
+      
+      /* Developer contact mobile */
+      .contact-info {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .contact-item {
+        padding: 6px 12px;
+      }
+      
+      /* Adjust PDF clone for mobile */
+      .pdf-clone {
+        padding: 15px;
+        margin: 10px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .school-name { font-size:1.4rem; }
+      .section-title { font-size:1.3rem; }
+      .result-card { padding:15px; }
+      .marks-table { min-width:350px; }
+      .marks-table th, .marks-table td { padding:6px; font-size:0.8rem; }
+      .shayari-title { font-size: 1.4rem; }
+      
+      .founder-card {
+        min-width: 100%;
+        max-width: 100%;
+        margin-bottom: 5px;
+      }
+      
+      /* Stack founders vertically on very small screens - CENTERED */
+      @media (max-width: 380px) {
+        .founders-container {
+          flex-direction: column;
+          align-items: center; /* CHANGED: Center alignment */
+          gap: 5px;
+        }
+        
+        .founder-card {
+          min-width: 90%; /* CHANGED: Smaller width for better centering */
+          max-width: 90%;
+          padding: 8px;
+        }
+      }
+    }
+
+    @media (max-width: 350px) {
+      .founder-photo { 
+        width: 45px; 
+        height: 45px;
+      }
+      
+      .founder-details h3 {
+        font-size: 0.7rem;
+      }
+      
+      /* FOUNDER CARDS CENTERED */
+      .founders-container {
+        justify-content: center;
+        align-items: center;
+      }
+      
+      .founder-card {
+        justify-content: center;
+        text-align: center;
+      }
+      
+      .founder-details {
+        text-align: center;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Admin Password Modal -->
+  <div class="admin-modal" id="admin-modal">
+    <div class="modal-content">
+      <h3>Admin Login</h3>
+      <p>Enter password to access admin panel:</p>
+      <input type="password" id="admin-password" placeholder="Enter password">
+      <div class="modal-buttons">
+        <button class="modal-btn submit" onclick="checkAdminPassword()">Submit</button>
+        <button class="modal-btn cancel" onclick="closeAdminModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <h1 class="school-name">Dakshya Classes & Computer Institute</h1>
+    <p class="school-subtitle">Quality Education for a Bright Future</p>
+    <p class="location">British Park Phase2, Singapore Township, Indore</p>
+    
+    <div class="founders-container">
+      <!-- Founder - Left Side -->
+      <div class="founder-card">
+        <div class="founder-photo">
+          <img src="https://i.ibb.co/kdJ6f22/founder.jpg" alt="Neeraj Pandey">
+        </div>
+        <div class="founder-details">
+          <h2>FOUNDER & DIRECTOR</h2>
+          <h3>MR. NEERAJ PANDEY</h3>
+          <p><i class="fas fa-phone"></i> +91 8120290187</p>
+        </div>
+      </div>
+      
+      <!-- Co-Founder - Right Side -->
+      <div class="founder-card">
+        <div class="founder-photo">
+          <img src="https://i.ibb.co/hRj2dc4X/cofounder.jpg" alt="Anjali Pandey">
+        </div>
+        <div class="founder-details">
+          <h2>CO-FOUNDER & DIRECTOR</h2>
+          <h3>MRS. ANJALI PANDEY</h3>
+          <p><i class="fas fa-phone"></i> +91 6232676290</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Moving Notice Text - From Firebase -->
+  <div class="marquee-container" id="notice-container">
+    <div class="marquee-content" id="marquee-content">
+      <!-- Notice content will be loaded from Firebase -->
+    </div>
+  </div>
+
+  <!-- Firebase Results Section -->
+  <div class="results-section">
+    <h2 class="section-title">📊 Check Your Results</h2>
+    
+    <div class="loading" id="loading-results">
+      <i class="fas fa-spinner fa-spin"></i> Loading available results...
+    </div>
+    
+    <div class="results-list" id="results-list" style="display:none;"></div>
+    
+    <div class="roll-input-section" id="roll-input-section">
+      <h3 id="selected-exam-name">Enter your Roll Number</h3>
+      <div class="input-group">
+        <input type="number" id="roll-input" placeholder="Enter Roll Number">
+        <button class="result-btn" onclick="fetchStudentResult()">📑 Get Result</button>
+        <button class="result-btn" onclick="goBackToResults()" style="background:#666;">⬅ Back</button>
+      </div>
+    </div>
+    
+    <div class="result-card" id="result-card">
+      <div class="result-card-header">
+        <h2>Dakshya Classes & Computer Institute, Indore</h2>
+        <h3 id="result-exam-name">Exam Name</h3>
+        <p>Under the guidance of <strong>MR. NEERAJ PANDEY & MRS. ANJALI PANDEY</strong></p>
+      </div>
+      
+      <div class="student-info">
+        <div class="info-row">
+          <span class="info-label">Student Name:</span>
+          <span class="info-value" id="result-student-name">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Father's Name:</span>
+          <span class="info-value" id="result-father-name">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Roll Number:</span>
+          <span class="info-value" id="result-roll-no">-</span>
+        </div>
+      </div>
+      
+      <table class="marks-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Marks Obtained</th>
+            <th>Total Marks</th>
+            <th>Percentage</th>
+          </tr>
+        </thead>
+        <tbody id="marks-table-body">
+          <!-- Marks will be populated here -->
+        </tbody>
+      </table>
+      
+      <div class="percentage-display" id="total-percentage">
+        Total Percentage: 0%
+      </div>
+      
+      <div class="division-display" id="division-display">
+        Division: -
+      </div>
+      
+      <div class="coaching-mention">
+        <p>This result is published by DAKSHYA CLASSES & COMPUTER INSTITUTE, British Park Phase2, Singapore Township, Indore</p>
+        <p>For any queries, contact: +91 8120290187, +91 6232676290 | Email: dakshyaclasses2320@gmail.com</p>
+      </div>
+      
+      <div class="action-buttons">
+        <button class="download-btn" onclick="downloadResultAsPDF()">
+          <i class="fas fa-download"></i> Download Result PDF
+        </button>
+        <button class="back-btn" onclick="goBackToResults()">
+          <i class="fas fa-arrow-left"></i> Back to Results
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coaching Promotion Section - Updated with Numbered List -->
+  <div class="promotion-section">
+    <h3>About Dakshya Classes & Computer Institute</h3>
+    <ol class="about-list" id="about-list">
+      <!-- About lines will be loaded from Firebase -->
+    </ol>
+  </div>
+
+  <!-- Motivational Quotes Section - Updated with English Quotes -->
+  <div class="shayari-section">
+    <h2 class="shayari-title">💫 Inspirational Quotes 💫</h2>
+    <div class="shayari-container">
+      <div class="shayari-card">
+        <div class="shayari-text">The only way to do great work is to love what you do. If you haven't found it yet, keep looking. Don't settle.</div>
+        <div class="shayari-author">- Steve Jobs</div>
+      </div>
+      <div class="shayari-card">
+        <div class="shayari-text">Education is the most powerful weapon which you can use to change the world.</div>
+        <div class="shayari-author">- Nelson Mandela</div>
+      </div>
+      <div class="shayari-card">
+        <div class="shayari-text">Success is not final, failure is not fatal: it is the courage to continue that counts.</div>
+        <div class="shayari-author">- Winston Churchill</div>
+      </div>
+      <div class="shayari-card">
+        <div class="shayari-text">The future belongs to those who believe in the beauty of their dreams.</div>
+        <div class="shayari-author">- Eleanor Roosevelt</div>
+      </div>
+      <div class="shayari-card">
+        <div class="shayari-text">Don't watch the clock; do what it does. Keep going.</div>
+        <div class="shayari-author">- Sam Levenson</div>
+      </div>
+      <div class="shayari-card">
+        <div class="shayari-text">The expert in anything was once a beginner. Keep learning, keep growing.</div>
+        <div class="shayari-author">- Helen Hayes</div>
+      </div>
+      <div class="shayari-card">
+        <div class="shayari-text">Your time is limited, don't waste it living someone else's life.</div>
+        <div class="shayari-author">- Steve Jobs</div>
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 8px;">
+      <p style="font-style: italic; color: #1a237e; margin-bottom: 10px;">"Dedicated to providing quality education and building future leaders"</p>
+      <p style="color: #333; font-weight: 600;">- Neeraj Pandey & Anjali Pandey</p>
+      <p style="color: #666; font-size: 0.9rem;">Founders, Dakshya Classes & Computer Institute</p>
+    </div>
+  </div>
+
+  <!-- Developer Contact Section (Simplified) -->
+  <div class="developer-contact">
+    <h3><i class="fas fa-laptop-code"></i> Website Developed By</h3>
+    <p>For similar website development contact:</p>
+    <div class="contact-info">
+      <div class="contact-item">
+        <i class="fas fa-phone"></i>
+        <span>8580594404</span>
+      </div>
+      <div class="contact-item">
+        <i class="fas fa-envelope"></i>
+        <span>kk5674010@gmail.com</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>&copy; 2023 Dakshya Classes & Computer Institute. All Rights Reserved.</p>
+    <p style="font-size: 0.8rem; margin-top: 5px;">British Park Phase2, Singapore Township, Indore | Email: dakshyaclasses2320@gmail.com</p>
+  </div>
+
+  <!-- PDF Clone Container (Hidden) -->
+  <div id="pdf-clone-container" class="pdf-clone-container"></div>
+
+  <!-- Firebase Configuration and JavaScript -->
+  <script>
+    // UPDATED: Your Firebase Configuration (Replace the TODO comment)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBkj5GCnfTGOjMC_3mWlooShtbcUS9v_PY",
+      authDomain: "dakshy-coaching.firebaseapp.com",
+      projectId: "dakshy-coaching",
+      storageBucket: "dakshy-coaching.firebasestorage.app",
+      messagingSenderId: "852740277918",
+      appId: "1:852740277918:web:f8e02cd044cb194c551d8f"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Global variables
+    let allResults = [];
+    let selectedExamId = null;
+    let selectedExamData = null;
+    let currentStudentResult = null;
+    let newResults = []; // Track which results are "new"
+    let viewedResults = []; // Track which results have been viewed
+
+    // Admin password - Change this to your preferred password
+    const ADMIN_PASSWORD = "dakshya@2023";
+
+    // Load viewed results from localStorage
+    function loadViewedResults() {
+      const stored = localStorage.getItem('dakshya_viewed_results');
+      viewedResults = stored ? JSON.parse(stored) : [];
+    }
+
+    // Save viewed results to localStorage
+    function saveViewedResults() {
+      localStorage.setItem('dakshya_viewed_results', JSON.stringify(viewedResults));
+    }
+
+    // Mark a result as viewed
+    function markResultAsViewed(resultId) {
+      if (!viewedResults.includes(resultId)) {
+        viewedResults.push(resultId);
+        saveViewedResults();
+      }
+    }
+
+    // Check if a result is "new" (not viewed yet)
+    function isResultNew(resultId) {
+      return !viewedResults.includes(resultId);
+    }
+
+    // Open admin modal
+    function openAdminModal() {
+      document.getElementById('admin-modal').style.display = 'flex';
+    }
+
+    // Close admin modal
+    function closeAdminModal() {
+      document.getElementById('admin-modal').style.display = 'none';
+      document.getElementById('admin-password').value = '';
+    }
+
+    // Check admin password
+    function checkAdminPassword() {
+      const password = document.getElementById('admin-password').value;
+      if (password === ADMIN_PASSWORD) {
+        window.location.href = "admin.html";
+      } else {
+        alert("Incorrect password! Please try again.");
+        document.getElementById('admin-password').value = '';
+        document.getElementById('admin-password').focus();
+      }
+    }
+
+    // Fetch notice from Firebase
+    async function fetchNotice() {
+      try {
+        const noticeSnapshot = await db.collection("notices").orderBy("timestamp", "desc").limit(1).get();
+        if (!noticeSnapshot.empty) {
+          const noticeData = noticeSnapshot.docs[0].data();
+          const noticeText = noticeData.text || "📚 Admission Open for Academic & Computer Courses";
+          
+          // Create marquee content
+          let marqueeHTML = '';
+          for (let i = 0; i < 5; i++) {
+            marqueeHTML += `<span>${noticeText} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`;
+          }
+          document.getElementById('marquee-content').innerHTML = marqueeHTML;
+        } else {
+          // Default notice if no notice in Firebase
+          const defaultNotice = "📚 Admission Open for Academic & Computer Courses";
+          let marqueeHTML = '';
+          for (let i = 0; i < 5; i++) {
+            marqueeHTML += `<span>${defaultNotice} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`;
+          }
+          document.getElementById('marquee-content').innerHTML = marqueeHTML;
+        }
+      } catch (error) {
+        console.error("Error fetching notice:", error);
+        // Fallback to default notice
+        const defaultNotice = "📚 Admission Open for Academic & Computer Courses";
+        let marqueeHTML = '';
+        for (let i = 0; i < 5; i++) {
+          marqueeHTML += `<span>${defaultNotice} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`;
+        }
+        document.getElementById('marquee-content').innerHTML = marqueeHTML;
+      }
+    }
+
+    // Fetch about lines from Firebase
+    async function fetchAboutLines() {
+      try {
+        const aboutSnapshot = await db.collection("about").orderBy("order").get();
+        if (!aboutSnapshot.empty) {
+          let aboutHTML = '';
+          aboutSnapshot.forEach(doc => {
+            const aboutData = doc.data();
+            aboutHTML += `<li>${aboutData.text}</li>`;
+          });
+          document.getElementById('about-list').innerHTML = aboutHTML;
+        } else {
+          // Default about lines if none in Firebase
+          const defaultAboutLines = [
+            "Dakshya Classes & Computer Institute is a premier educational institution in Indore.",
+            "We provide comprehensive coaching for school students from 6th to 12th standard.",
+            "Our computer institute offers professional courses in programming, web development, and software skills.",
+            "Experienced faculty members provide personalized attention to each student.",
+            "Regular tests and practice sessions ensure thorough preparation for exams.",
+            "Special guidance programs for weak students to help them improve their performance.",
+            "Modern teaching methods with smart classrooms and digital learning resources.",
+            "Focus on both academic excellence and practical computer skills development.",
+            "Disciplined learning environment that encourages curiosity and innovation.",
+            "Our mission is to build confident, knowledgeable, and skilled individuals for the future."
+          ];
+          
+          let aboutHTML = '';
+          defaultAboutLines.forEach((line, index) => {
+            aboutHTML += `<li>${line}</li>`;
+          });
+          document.getElementById('about-list').innerHTML = aboutHTML;
+        }
+      } catch (error) {
+        console.error("Error fetching about lines:", error);
+        // Fallback to default about lines
+        const defaultAboutLines = [
+          "Dakshya Classes & Computer Institute is a premier educational institution in Indore.",
+          "We provide comprehensive coaching for school students from 6th to 12th standard.",
+          "Our computer institute offers professional courses in programming, web development, and software skills.",
+          "Experienced faculty members provide personalized attention to each student.",
+          "Regular tests and practice sessions ensure thorough preparation for exams.",
+          "Special guidance programs for weak students to help them improve their performance.",
+          "Modern teaching methods with smart classrooms and digital learning resources.",
+          "Focus on both academic excellence and practical computer skills development.",
+          "Disciplined learning environment that encourages curiosity and innovation.",
+          "Our mission is to build confident, knowledgeable, and skilled individuals for the future."
+        ];
+        
+        let aboutHTML = '';
+        defaultAboutLines.forEach((line, index) => {
+          aboutHTML += `<li>${line}</li>`;
+        });
+        document.getElementById('about-list').innerHTML = aboutHTML;
+      }
+    }
+
+    // Fetch all results from Firestore
+    async function fetchAllResults() {
+      try {
+        loadViewedResults(); // Load previously viewed results
+        
+        const querySnapshot = await db.collection("results").get();
+        allResults = [];
+        newResults = []; // Reset new results array
+        
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const resultId = doc.id;
+          const isNew = isResultNew(resultId);
+          
+          if (isNew) {
+            newResults.push(resultId);
+          }
+          
+          // Format date according to your data structure
+          let formattedDate = "Date not available";
+          if (data.createdAt) {
+            if (data.createdAt.toDate) {
+              formattedDate = new Date(data.createdAt.toDate()).toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              });
+            } else if (typeof data.createdAt === 'string') {
+              formattedDate = data.createdAt;
+            }
+          }
+          
+          allResults.push({
+            id: resultId,
+            examName: data.examName || "Unnamed Exam",
+            createdAt: formattedDate,
+            data: data,
+            isNew: isNew
+          });
+        });
+        
+        // Sort by date (newest first)
+        allResults.sort((a, b) => {
+          const dateA = a.data.createdAt;
+          const dateB = b.data.createdAt;
+          
+          if (dateA && dateB) {
+            if (dateA.toDate && dateB.toDate) {
+              return dateB.toDate() - dateA.toDate();
+            } else if (typeof dateA === 'string' && typeof dateB === 'string') {
+              return new Date(dateB) - new Date(dateA);
+            }
+          }
+          return 0;
+        });
+        
+        displayResultsList();
+      } catch (error) {
+        console.error("Error fetching results:", error);
+        document.getElementById("loading-results").innerHTML = 
+          '<div class="error">Error loading results. Please try again later.</div>';
+      }
+    }
+
+    // Display results list
+    function displayResultsList() {
+      const resultsList = document.getElementById("results-list");
+      const loading = document.getElementById("loading-results");
+      
+      if (allResults.length === 0) {
+        loading.innerHTML = '<div class="error">No results available at the moment.</div>';
+        return;
+      }
+      
+      loading.style.display = "none";
+      resultsList.style.display = "grid";
+      
+      let html = "";
+      allResults.forEach((result, index) => {
+        const newSticker = result.isNew ? '<div class="new-sticker">NEW</div>' : '';
+        html += `
+          <div class="result-item" onclick="selectExam('${result.id}', ${index})" id="result-item-${index}">
+            ${newSticker}
+            <div class="exam-name">${result.examName}</div>
+            <div class="exam-date">📅 Published: ${result.createdAt}</div>
+          </div>
+        `;
+      });
+      
+      resultsList.innerHTML = html;
+    }
+
+    // Select an exam
+    function selectExam(examId, index) {
+      selectedExamId = examId;
+      selectedExamData = allResults[index].data;
+      
+      // Mark this result as viewed (remove NEW sticker)
+      markResultAsViewed(examId);
+      
+      // Update the result item to remove NEW sticker
+      const resultItem = document.getElementById(`result-item-${index}`);
+      if (resultItem) {
+        const newSticker = resultItem.querySelector('.new-sticker');
+        if (newSticker) {
+          newSticker.remove();
+        }
+      }
+      
+      // Highlight selected item
+      document.querySelectorAll('.result-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      document.getElementById(`result-item-${index}`).classList.add('active');
+      
+      // Show roll number input section
+      document.getElementById('selected-exam-name').textContent = 
+        `Enter your Roll Number for: ${selectedExamData.examName}`;
+      document.getElementById('results-list').style.display = 'none';
+      document.getElementById('roll-input-section').style.display = 'block';
+      document.getElementById('result-card').style.display = 'none';
+      
+      // Clear previous input
+      document.getElementById('roll-input').value = '';
+    }
+
+    // Go back to results list
+    function goBackToResults() {
+      document.getElementById('results-list').style.display = 'grid';
+      document.getElementById('roll-input-section').style.display = 'none';
+      document.getElementById('result-card').style.display = 'none';
+      selectedExamId = null;
+      selectedExamData = null;
+      currentStudentResult = null;
+      
+      // Remove active class
+      document.querySelectorAll('.result-item').forEach(item => {
+        item.classList.remove('active');
+      });
+    }
+
+    // Calculate division based on percentage
+    function calculateDivision(percentage) {
+      if (percentage >= 60) {
+        return {
+          division: "FIRST DIVISION",
+          color: "#28a745",
+          bgColor: "#d4edda"
+        };
+      } else if (percentage >= 45) {
+        return {
+          division: "SECOND DIVISION",
+          color: "#17a2b8",
+          bgColor: "#d1ecf1"
+        };
+      } else if (percentage >= 30) {
+        return {
+          division: "THIRD DIVISION",
+          color: "#ffc107",
+          bgColor: "#fff3cd"
+        };
+      } else {
+        return {
+          division: "FAIL",
+          color: "#dc3545",
+          bgColor: "#f8d7da"
+        };
+      }
+    }
+
+    // Fetch student result
+    function fetchStudentResult() {
+      const rollInput = document.getElementById('roll-input').value.trim();
+      
+      if (!rollInput) {
+        alert("Please enter your roll number");
+        return;
+      }
+      
+      if (!selectedExamData || !selectedExamData.students) {
+        alert("Exam data not loaded properly. Please go back and select again.");
+        return;
+      }
+      
+      // Find student by roll number
+      const student = selectedExamData.students.find(s => s.rollNo == rollInput);
+      
+      if (!student) {
+        alert("Roll number not found in this exam.");
+        return;
+      }
+      
+      // Display result
+      displayStudentResult(student);
+    }
+
+    // Display student result
+    function displayStudentResult(student) {
+      currentStudentResult = student;
+      
+      // Hide input section, show result card
+      document.getElementById('roll-input-section').style.display = 'none';
+      const resultCard = document.getElementById('result-card');
+      resultCard.style.display = 'block';
+      
+      // Set exam info
+      document.getElementById('result-exam-name').textContent = selectedExamData.examName;
+      
+      // Set student info
+      document.getElementById('result-student-name').textContent = student.name || "-";
+      document.getElementById('result-father-name').textContent = student.fatherName || "-";
+      document.getElementById('result-roll-no').textContent = student.rollNo || "-";
+      
+      // Calculate and display marks
+      const marksTable = document.getElementById('marks-table-body');
+      let html = '';
+      let totalObtained = 0;
+      let totalPossible = 0;
+      
+      if (student.marks && selectedExamData.subjects) {
+        // Loop through subjects from exam data
+        selectedExamData.subjects.forEach(subject => {
+          const subjectName = subject.name;
+          const subjectTotal = subject.total || 100;
+          const marksObtained = student.marks[subjectName] || 0;
+          const percentage = ((marksObtained / subjectTotal) * 100).toFixed(2);
+          
+          html += `
+            <tr>
+              <td>${subjectName}</td>
+              <td>${marksObtained}</td>
+              <td>${subjectTotal}</td>
+              <td>${percentage}%</td>
+            </tr>
+          `;
+          
+          totalObtained += marksObtained;
+          totalPossible += subjectTotal;
+        });
+        
+        // Add total row
+        const totalPercentage = totalPossible > 0 ? ((totalObtained / totalPossible) * 100).toFixed(2) : 0;
+        html += `
+          <tr class="total-marks">
+            <td><strong>Total</strong></td>
+            <td><strong>${totalObtained}</strong></td>
+            <td><strong>${totalPossible}</strong></td>
+            <td><strong>${totalPercentage}%</strong></td>
+          </tr>
+        `;
+        
+        document.getElementById('total-percentage').textContent = 
+          `Total Percentage: ${totalPercentage}%`;
+        
+        // Calculate and display division
+        const divisionInfo = calculateDivision(parseFloat(totalPercentage));
+        const divisionElement = document.getElementById('division-display');
+        divisionElement.textContent = `Division: ${divisionInfo.division}`;
+        divisionElement.style.backgroundColor = divisionInfo.bgColor;
+        divisionElement.style.color = divisionInfo.color;
+        divisionElement.style.border = `2px solid ${divisionInfo.color}`;
+        
+      } else {
+        html = '<tr><td colspan="4" style="text-align:center;">Marks data not available</td></tr>';
+        document.getElementById('division-display').textContent = 'Division: N/A';
+      }
+      
+      marksTable.innerHTML = html;
+      
+      // Scroll to result
+      resultCard.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Create clone for PDF generation
+    function createPDFClone() {
+      const resultCard = document.getElementById('result-card');
+      const cloneContainer = document.getElementById('pdf-clone-container');
+      
+      // Clear previous clone
+      cloneContainer.innerHTML = '';
+      
+      // Create a deep clone of the result card
+      const clone = resultCard.cloneNode(true);
+      clone.classList.add('pdf-clone');
+      clone.style.display = 'block';
+      clone.style.width = '100%';
+      clone.style.maxWidth = '800px';
+      clone.style.margin = '20px auto';
+      clone.style.padding = '20px';
+      clone.style.background = 'white';
+      clone.style.boxShadow = '0 0 20px rgba(0,0,0,0.1)';
+      clone.style.position = 'relative';
+      clone.style.left = '0';
+      clone.style.top = '0';
+      clone.style.transform = 'none';
+      clone.style.zIndex = '10001';
+      
+      // Remove action buttons from clone
+      const actionButtons = clone.querySelector('.action-buttons');
+      if (actionButtons) {
+        actionButtons.remove();
+      }
+      
+      // Show the clone container and add the clone
+      cloneContainer.appendChild(clone);
+      cloneContainer.style.visibility = 'visible';
+      cloneContainer.style.opacity = '0';
+      cloneContainer.style.pointerEvents = 'none';
+      
+      return clone;
+    }
+
+    // Preload all images in the result card
+    function preloadImages(callback) {
+      const images = document.querySelectorAll('#result-card img');
+      let loadedCount = 0;
+      const totalImages = images.length;
+      
+      if (totalImages === 0) {
+        callback();
+        return;
+      }
+      
+      const onImageLoad = () => {
+        loadedCount++;
+        if (loadedCount === totalImages) {
+          callback();
+        }
+      };
+      
+      images.forEach(img => {
+        if (img.complete) {
+          onImageLoad();
+        } else {
+          img.onload = onImageLoad;
+          img.onerror = onImageLoad; // Also continue if image fails to load
+        }
+      });
+    }
+
+    // Download result as PDF - FIXED VERSION
+    function downloadResultAsPDF() {
+      // Disable the download button to prevent multiple clicks
+      const downloadBtn = document.querySelector('.download-btn');
+      const originalText = downloadBtn.innerHTML;
+      downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+      downloadBtn.disabled = true;
+      
+      // Create a clone for PDF generation
+      const clone = createPDFClone();
+      const cloneContainer = document.getElementById('pdf-clone-container');
+      
+      // Show the clone container (but keep it invisible)
+      cloneContainer.style.visibility = 'visible';
+      cloneContainer.style.opacity = '0';
+      
+      // Wait a bit for DOM to settle
+      setTimeout(() => {
+        // Preload images before generating PDF
+        preloadImages(() => {
+          // Generate PDF with optimized settings
+          const options = {
+            margin: [10, 10, 10, 10],
+            filename: `Dakshya_Result_${currentStudentResult?.rollNo || 'unknown'}.pdf`,
+            image: { 
+              type: 'jpeg', 
+              quality: 0.98 
+            },
+            html2canvas: { 
+              scale: 2,
+              useCORS: true,
+              letterRendering: true,
+              scrollX: 0,
+              scrollY: 0,
+              windowWidth: clone.scrollWidth,
+              windowHeight: clone.scrollHeight,
+              backgroundColor: '#ffffff',
+              logging: false,
+              onclone: function(clonedDoc) {
+                // Ensure all images in clone are visible
+                const clonedImages = clonedDoc.querySelectorAll('img');
+                clonedImages.forEach(img => {
+                  img.style.display = 'block';
+                  img.style.maxWidth = '100%';
+                  img.style.height = 'auto';
+                });
+              }
+            },
+            jsPDF: { 
+              unit: 'mm', 
+              format: 'a4', 
+              orientation: 'portrait',
+              compress: true
+            },
+            pagebreak: { 
+              mode: ['avoid-all', 'css', 'legacy'],
+              before: '.page-break-before',
+              after: '.page-break-after',
+              avoid: ['.no-break', 'tr', 'td']
+            }
+          };
+          
+          // Generate and save PDF
+          html2pdf().set(options).from(clone).save().then(() => {
+            // Cleanup: hide the clone container
+            cloneContainer.style.visibility = 'hidden';
+            cloneContainer.innerHTML = '';
+            
+            // Re-enable the download button
+            downloadBtn.innerHTML = originalText;
+            downloadBtn.disabled = false;
+            
+            // Show success message
+            alert('PDF downloaded successfully!');
+          }).catch(error => {
+            console.error('PDF generation error:', error);
+            cloneContainer.style.visibility = 'hidden';
+            cloneContainer.innerHTML = '';
+            
+            // Re-enable the download button
+            downloadBtn.innerHTML = originalText;
+            downloadBtn.disabled = false;
+            
+            // Fallback: try simple method
+            alert('Generating PDF... Please wait.');
+            try {
+              const fallbackOptions = {
+                margin: 10,
+                filename: `Dakshya_Result_${currentStudentResult?.rollNo || 'unknown'}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+              };
+              
+              html2pdf().set(fallbackOptions).from(resultCard).save().then(() => {
+                downloadBtn.innerHTML = originalText;
+                downloadBtn.disabled = false;
+              });
+            } catch (fallbackError) {
+              alert('Error generating PDF. Please try again or take a screenshot.');
+              downloadBtn.innerHTML = originalText;
+              downloadBtn.disabled = false;
+            }
+          });
+        });
+      }, 500);
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      fetchAllResults();
+      fetchNotice();
+      fetchAboutLines();
+      
+      // Add event listener for Enter key in admin password field
+      document.getElementById('admin-password').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          checkAdminPassword();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
