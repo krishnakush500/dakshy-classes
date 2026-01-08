@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Dakshya Classes</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .admin-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+      min-height: 90vh;
+    }
+    
+    /* Admin Header */
+    .admin-header {
+      background: linear-gradient(to right, #1a237e, #283593, #303f9f);
+      color: white;
+      padding: 30px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .admin-header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    
+    .admin-header .subtitle {
+      font-size: 1.2rem;
+      color: #ffc107;
+      margin-bottom: 20px;
+    }
+    
+    .welcome-text {
+      font-size: 1.8rem;
+      margin: 20px 0;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      border-left: 4px solid #ffc107;
+    }
+    
+    .founders-welcome {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    
+    .founder-welcome {
+      text-align: center;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      min-width: 200px;
+    }
+    
+    .founder-welcome h3 {
+      color: #ffc107;
+      margin-bottom: 5px;
+      font-size: 1.1rem;
+    }
+    
+    .founder-welcome p {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+    
+    /* Dashboard Grid */
+    .dashboard-grid {
+      padding: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+    }
+    
+    .dashboard-card {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      border: 2px solid #f0f0f0;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 250px;
+    }
+    
+    .dashboard-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+      border-color: #1a237e;
+    }
+    
+    .card-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #1a237e, #283593);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .card-icon i {
+      font-size: 2.5rem;
+      color: white;
+    }
+    
+    .dashboard-card h2 {
+      color: #1a237e;
+      margin-bottom: 15px;
+      font-size: 1.8rem;
+    }
+    
+    .dashboard-card p {
+      color: #666;
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    
+    .action-btn {
+      background: #1a237e;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .action-btn:hover {
+      background: #283593;
+      transform: scale(1.05);
+    }
+    
+    /* Result Card Specific */
+    .result-card .card-icon {
+      background: linear-gradient(135deg, #28a745, #20c997);
+    }
+    
+    .fees-card .card-icon {
+      background: linear-gradient(135deg, #ffc107, #ff9800);
+    }
+    
+    .notice-card .card-icon {
+      background: linear-gradient(135deg, #17a2b8, #00bcd4);
+    }
+    
+    /* Footer */
+    .admin-footer {
+      background: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid #e9ecef;
+      margin-top: 30px;
+    }
+    
+    .admin-footer p {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      
+      .admin-header {
+        padding: 20px;
+      }
+      
+      .admin-header h1 {
+        font-size: 2rem;
+      }
+      
+      .welcome-text {
+        font-size: 1.4rem;
+        padding: 12px;
+      }
+      
+      .founders-welcome {
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+      }
+      
+      .founder-welcome {
+        width: 100%;
+        max-width: 300px;
+      }
+      
+      .dashboard-grid {
+        padding: 20px;
+        grid-template-columns: 1fr;
+      }
+      
+      .dashboard-card {
+        padding: 25px;
+        min-height: 220px;
+      }
+      
+      .card-icon {
+        width: 70px;
+        height: 70px;
+      }
+      
+      .card-icon i {
+        font-size: 2rem;
+      }
+      
+      .dashboard-card h2 {
+        font-size: 1.5rem;
+      }
+      
+      .logout-btn {
+        position: relative;
+        top: 0;
+        right: 0;
+        margin: 10px auto;
+        display: inline-flex;
+        justify-content: center;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .admin-header h1 {
+        font-size: 1.8rem;
+      }
+      
+      .welcome-text {
+        font-size: 1.2rem;
+      }
+      
+      .dashboard-card {
+        padding: 20px;
+      }
+      
+      .card-icon {
+        width: 60px;
+        height: 60px;
+      }
+      
+      .card-icon i {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Admin Header -->
+    <div class="admin-header">
+      <button class="logout-btn" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+      
+      <h1><i class="fas fa-user-shield"></i> Admin Dashboard</h1>
+      <p class="subtitle">Dakshya Classes & Computer Institute</p>
+      
+      <div class="welcome-text">
+        Welcome to the Admin Control Panel
+      </div>
+      
+      <div class="founders-welcome">
+        <div class="founder-welcome">
+          <h3>MR. NEERAJ PANDEY</h3>
+          <p>Founder & Director</p>
+        </div>
+        <div class="founder-welcome">
+          <h3>MRS. ANJALI PANDEY</h3>
+          <p>Co-Founder & Director</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+      <!-- Publish Result Card -->
+      <div class="dashboard-card result-card" onclick="openResultPage()">
+        <div class="card-icon">
+          <i class="fas fa-file-alt"></i>
+        </div>
+        <h2>Publish Results</h2>
+        <p>Create and publish new exam results. Manage student marks, subjects, and generate result cards for students to view online.</p>
+        <button class="action-btn" onclick="openResultPage()">
+          <i class="fas fa-external-link-alt"></i> Open Result Manager
+        </button>
+      </div>
+      
+      <!-- Fees Management Card -->
+      <div class="dashboard-card fees-card" onclick="openFeesPage()">
+        <div class="card-icon">
+          <i class="fas fa-money-check-alt"></i>
+        </div>
+        <h2>Fees Management</h2>
+        <p>Manage student fees, track payments, generate invoices, and monitor pending dues. Keep complete financial records of all students.</p>
+        <button class="action-btn" onclick="openFeesPage()">
+          <i class="fas fa-external-link-alt"></i> Open Fees Manager
+        </button>
+      </div>
+      
+      <!-- Notice Management Card -->
+      <div class="dashboard-card notice-card" onclick="openNoticePage()">
+        <div class="card-icon">
+          <i class="fas fa-bullhorn"></i>
+        </div>
+        <h2>Notice Management</h2>
+        <p>Create and publish important notices, announcements, and updates that will display on the main website's marquee for all visitors.</p>
+        <button class="action-btn" onclick="openNoticePage()">
+          <i class="fas fa-external-link-alt"></i> Open Notice Manager
+        </button>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="admin-footer">
+      <p>© 2023 Dakshya Classes & Computer Institute | Admin Panel v1.0</p>
+      <p>British Park Phase2, Singapore Township, Indore | Contact: +91 8120290187, +91 6232676290</p>
+    </div>
+  </div>
+
+  <script>
+    // Function to open Result Management Page
+    function openResultPage() {
+      window.location.href = "result.html";
+    }
+    
+    // Function to open Fees Management Page
+    function openFeesPage() {
+      window.location.href = "fees.html";
+    }
+    
+    // Function to open Notice Management Page
+    function openNoticePage() {
+      window.location.href = "notice.html";
+    }
+    
+    // Function to logout (redirect to main page)
+    function logout() {
+      if (confirm("Are you sure you want to logout?")) {
+        window.location.href = "index.html";
+      }
+    }
+    
+    // Make entire cards clickable
+    document.querySelectorAll('.dashboard-card').forEach(card => {
+      card.addEventListener('click', function(e) {
+        // Don't trigger if clicked on the button itself
+        if (!e.target.closest('.action-btn')) {
+          const cardClass = this.classList;
+          if (cardClass.contains('result-card')) {
+            openResultPage();
+          } else if (cardClass.contains('fees-card')) {
+            openFeesPage();
+          } else if (cardClass.contains('notice-card')) {
+            openNoticePage();
+          }
+        }
+      });
+    });
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      // Ctrl + 1 for Results
+      if (e.ctrlKey && e.key === '1') {
+        openResultPage();
+      }
+      // Ctrl + 2 for Fees
+      else if (e.ctrlKey && e.key === '2') {
+        openFeesPage();
+      }
+      // Ctrl + 3 for Notice
+      else if (e.ctrlKey && e.key === '3') {
+        openNoticePage();
+      }
+      // Escape for logout
+      else if (e.key === 'Escape') {
+        logout();
+      }
+    });
+    
+    // Display welcome message
+    window.onload = function() {
+      console.log("Admin Panel Loaded Successfully");
+      console.log("Shortcuts: Ctrl+1 (Results), Ctrl+2 (Fees), Ctrl+3 (Notice), Esc (Logout)");
+    };
+  </script>
+</body>
+</html>
